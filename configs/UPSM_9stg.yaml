@@ -1,0 +1,69 @@
+DATASETS:
+  STEP: 2
+  WAVE_LENS: 28
+  MASK_TYPE: "mask_3d_shift"
+  TRAIN:
+    ITERATION: 10000
+    CROP_SIZE: [256, 256]
+    WITH_NOISE: false
+    PATHS:
+      - "data/CAVE_1024_28"
+    MASK_PATH: "data/TSA_simu_data/mask_3d_shift.mat"
+    RANDOM_MASK: false
+    AUGMENT: true
+  VAL:
+    PATH: "data/TSA_simu_data/Truth"
+    MASK_PATH: "data/TSA_simu_data/mask_3d_shift.mat"
+  TEST:
+    PATH: "data/TSA_real_data/Measurements"
+    MASK_PATH: "data/TSA_real_data/mask_3d_shift.mat"
+
+DATALOADER:
+  BATCH_SIZE: 1
+  NUM_WORKERS: 8
+  PIN_MEMORY: false
+
+MODEL:
+  DENOISER:
+    TYPE: "UPSM"
+    DERNN_LNLT:
+      IN_DIM: 29
+      DIM: 28
+      OUT_DIM: 28
+      WINDOW_SIZE: [8, 8]
+      WINDOW_NUM: [8, 8]
+      LOCAL: true
+      NON_LOCAL: true
+      WITH_DL: true
+      WITH_MU: true
+      WITH_NOISE_LEVEL: true
+      NUM_BLOCKS: [1, 1, 1, 1, 1]
+      LAYERNORM_TYPE: "WithBias"
+      FFN_NAME: "Gated_Dconv_FeedForward"
+      FFN_EXPAND: 2.66
+      RANK: 32
+      NUM_TOKENS: 64
+      STAGE: 9
+      SHARE_PARAMS: true
+      ABLATION_PRESET: "full"
+      WITH_GUIDE_MAMBA: true
+      WITH_DIRECTIONAL_PARAMS: true
+      WITH_DIRECTION_SCHEDULE: true
+      WITH_CROSS_STAGE_MEMORY: true
+  EMA:
+    ENABLE: true
+    DECAY: 0.999
+
+OPTIMIZER:
+  LR: 1e-3
+  MAX_EPOCH: 200
+  GRAD_CLIP: true
+
+LOSSES:
+  L1_LOSS: true
+  TV_LOSS: false
+
+DEBUG: false
+OUTPUT_DIR: "results/UPSM_9stg"
+RESUME_CKPT_PATH: ""
+PRETRAINED_CKPT_PATH: "checkpoints/UPSM_9stg.pth"

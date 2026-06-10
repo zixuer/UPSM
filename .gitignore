@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.vscode/
+.codex/
+.agents/
+
+data/
+results/
+outputs/*
+!outputs/.gitkeep
+checkpoints/*
+!checkpoints/.gitkeep
+
+sci/kernels/**/build/
+sci/kernels/**/dist/
+*.egg-info/

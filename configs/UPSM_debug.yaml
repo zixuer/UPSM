@@ -1,0 +1,12 @@
+_BASE_: "UPSM_6stg.yaml"
+
+DEBUG: true
+OUTPUT_DIR: "results/UPSM_debug"
+
+DATASETS:
+  TRAIN:
+    ITERATION: 10
+
+DATALOADER:
+  BATCH_SIZE: 1
+  NUM_WORKERS: 0
