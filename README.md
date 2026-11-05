@@ -52,3 +52,14 @@ python tools/train.py \
   --config-file configs/UPSM_6stg.yaml \
   --device cuda:0
 ```
+
+## Parameters and FLOPs
+
+```bash
+python tools/profile_complexity.py --stages 9 --output outputs/upsm9.json --check-paper
+```
+
+No dataset or checkpoint is required. See [the complexity guide](docs/COMPLEXITY.md)
+for verified UPSM results, the counting convention, environment, and the unresolved
+MiJUN FLOPs discrepancy. The MiJUN mode is diagnostic, not a claim that every
+baseline entry has been reproduced.

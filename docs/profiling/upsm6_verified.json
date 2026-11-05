@@ -1,0 +1,96 @@
+{
+  "model": "upsm",
+  "stages": 6,
+  "params": 1907066,
+  "params_m": 1.907066,
+  "fvcore_gflops": 82.769115296,
+  "by_operator": {
+    "conv": 50535123104,
+    "adaptive_avg_pool2d": 17283072,
+    "layer_norm": 894812160,
+    "linear": 18965526528,
+    "matmul": 1805991936,
+    "selective_scan_core": 10305404928,
+    "selective_scan_D": 107347968,
+    "group_norm": 137625600
+  },
+  "unsupported_ops_excluded": {
+    "aten::add": 623,
+    "aten::sub": 255,
+    "aten::mul": 1134,
+    "aten::gelu": 124,
+    "aten::softplus": 6,
+    "aten::pow": 6,
+    "aten::sum": 12,
+    "aten::div": 192,
+    "aten::repeat": 12,
+    "aten::rsub": 42,
+    "aten::pad": 6,
+    "aten::mul_": 312,
+    "aten::mean": 126,
+    "aten::var": 126,
+    "aten::sqrt": 126,
+    "aten::pixel_unshuffle": 6,
+    "aten::hardsigmoid": 12,
+    "aten::linalg_vector_norm": 60,
+    "aten::clamp_min": 60,
+    "aten::expand_as": 60,
+    "aten::softmax": 30,
+    "aten::argmax": 30,
+    "aten::argsort": 60,
+    "aten::sigmoid": 10
+  },
+  "legacy_thop": null,
+  "historical_fused_scan_only_diagnostic": null,
+  "fast_path_modules_disabled": 0,
+  "fast_reference_max_abs_error": 0.0,
+  "input_shapes": {
+    "Y": [
+      1,
+      256,
+      310
+    ],
+    "mask": [
+      1,
+      28,
+      256,
+      310
+    ],
+    "H": [
+      1,
+      28,
+      256,
+      256
+    ]
+  },
+  "config": "configs/UPSM_9stg.yaml",
+  "resolved_config": "DATALOADER:\n  BATCH_SIZE: 1\n  NUM_WORKERS: 8\n  PIN_MEMORY: false\nDATASETS:\n  MASK_TYPE: mask_3d_shift\n  STEP: 2\n  TEST:\n    MASK_PATH: data/TSA_real_data/mask_3d_shift.mat\n    PATH: data/TSA_real_data/Measurements\n  TRAIN:\n    AUGMENT: true\n    CROP_SIZE:\n    - 256\n    - 256\n    ITERATION: 10000\n    MASK_PATH: data/TSA_simu_data/mask_3d_shift.mat\n    PATHS:\n    - data/CAVE_1024_28\n    RANDOM_MASK: false\n    WITH_NOISE: false\n  VAL:\n    MASK_PATH: data/TSA_simu_data/mask_3d_shift.mat\n    PATH: data/TSA_simu_data/Truth\n  WAVE_LENS: 28\nDEBUG: false\nDETERMINISTIC: true\nIMG_SIZE:\n- 256\n- 256\nLOSSES:\n  L1_LOSS: true\n  TV_LOSS: false\nMODEL:\n  DENOISER:\n    DERNN_LNLT:\n      ABLATION_PRESET: full\n      DIM: 28\n      FFN_EXPAND: 2.66\n      FFN_NAME: Gated_Dconv_FeedForward\n      IN_DIM: 29\n      LAYERNORM_TYPE: WithBias\n      LOCAL: true\n      NON_LOCAL: true\n      NUM_BLOCKS:\n      - 1\n      - 1\n      - 1\n      - 1\n      - 1\n      NUM_TOKENS: 64\n      OUT_DIM: 28\n      RANK: 32\n      SHARE_PARAMS: true\n      STAGE: 6\n      TOKEN_ORG_MODE: ifo\n      WINDOW_NUM:\n      - 8\n      - 8\n      WINDOW_SIZE:\n      - 8\n      - 8\n      WITH_CROSS_STAGE_MEMORY: true\n      WITH_DIRECTIONAL_PARAMS: true\n      WITH_DIRECTION_SCHEDULE: true\n      WITH_DL: true\n      WITH_GUIDE_MAMBA: true\n      WITH_MU: true\n      WITH_NOISE_LEVEL: true\n    TYPE: UPSM\n  EMA:\n    DECAY: 0.999\n    ENABLE: true\nOPTIMIZER:\n  GRAD_CLIP: true\n  LR: 0.001\n  MAX_EPOCH: 200\n  WARMDICT_MAX_EPOCH: 100\nOUTPUT_DIR: results/UPSM_9stg\nPRETRAINED_CKPT_PATH: checkpoints/UPSM_9stg.pth\nRESUME_CKPT_PATH: ''\nSEED: 3407\nWARMDICT_PATH: null\n",
+  "git_commit": "5f14e1ae5c8a53631e13070d7ba9b5a0cc947754",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "environment": {
+    "torch": "2.5.1",
+    "fvcore": "0.1.5.post20221221",
+    "thop": "0.1.1-2209072238",
+    "mamba-ssm": "1.2.0",
+    "causal-conv1d": "1.2.0",
+    "timm": "1.0.22",
+    "einops": "0.8.1"
+  },
+  "python": "3.9.20",
+  "cuda": "11.8",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "source_sha256": {
+    "sci/architectures/UPSM.py": "168d750863c8756661700314c3c79943b419353f98eb18ee452b6359d131460b",
+    "sci/architectures/__init__.py": "df173181f296c5b4bf142d9ecbf89936b704784a88059a4194b858d7822c25aa",
+    "sci/architectures/mobile_net.py": "d8ab4798c2ad651f106a1c2db2ed9bfc1b0a7c027755235d225a0c17b83a4129",
+    "sci/architectures/spatial_mamba.py": "b279b2e9474c547f88d419a261e750f5bce2a3efe19229809de145a6d93fd756",
+    "sci/data/__init__.py": "3a2032e21b51d8fbd36eaa47608f2142344313055bd7f20713706907b86b3b96",
+    "sci/data/data.py": "e3f947b4f296a44ce79a1f9d23f10e9b58d864e0c9841e2e91a674ac25062cef",
+    "sci/config/__init__.py": "2d0cc16ca934d07ed79845fd46b672b5d3f350f920546b6ab9e95e4f6bae4409",
+    "sci/config/config.py": "4911d1f650d40d7f5601dd3a0b6751bbd0f1d00db7bf408945f6922fd3d25234",
+    "sci/config/defaults.py": "8cc47a06d52d7194f45a00069ae8da4bdea2ce3aa9fcbfcf1d1da0cd7e420e52"
+  },
+  "profiler_sha256": "88a6acbc5db9efcb46824a46f115b255eb3254ba3c2da85ddbafdb7659bdcd3c",
+  "paper_gflops": 82.76,
+  "paper_agreement_within_0_01G": true
+}

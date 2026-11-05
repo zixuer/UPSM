@@ -1,0 +1,121 @@
+{
+  "model": "mijun",
+  "stages": 9,
+  "params": 1892204,
+  "params_m": 1.892204,
+  "fvcore_gflops": 264.592216112,
+  "by_operator": {
+    "conv": 53378117744,
+    "adaptive_avg_pool2d": 9999360,
+    "layer_norm": 1073479680,
+    "linear": 72857340864,
+    "matmul": 106035019776,
+    "selective_scan_core": 30916214784,
+    "selective_scan_D": 322043904
+  },
+  "unsupported_ops_excluded": {
+    "aten::add": 703,
+    "aten::sub": 273,
+    "aten::mul": 2207,
+    "aten::gelu": 81,
+    "aten::softplus": 9,
+    "aten::pow": 9,
+    "aten::sum": 18,
+    "aten::div": 189,
+    "aten::repeat": 18,
+    "aten::rsub": 108,
+    "aten::pad": 54,
+    "aten::mul_": 405,
+    "aten::mean": 135,
+    "aten::var": 135,
+    "aten::sqrt": 135,
+    "aten::softmax": 135,
+    "prim::PythonOp.CausalConv1dFn": 135
+  },
+  "legacy_thop": {
+    "thop_visible_gflops": 137.277526568,
+    "thop_reported_params": 1053722,
+    "plus_scan_core_gflops": 168.193741352
+  },
+  "historical_fused_scan_only_diagnostic": {
+    "gflops": 199.943966768,
+    "by_operator": {
+      "conv": 53378117744,
+      "adaptive_avg_pool2d": 9999360,
+      "layer_norm": 1073479680,
+      "linear": 11561651136,
+      "matmul": 103004504064,
+      "PythonOp.MambaInnerFn": 30916214784
+    },
+    "unsupported": {
+      "aten::add": 703,
+      "aten::sub": 273,
+      "aten::mul": 1532,
+      "aten::gelu": 81,
+      "aten::softplus": 9,
+      "aten::pow": 9,
+      "aten::sum": 18,
+      "aten::div": 189,
+      "aten::repeat": 18,
+      "aten::rsub": 108,
+      "aten::pad": 54,
+      "aten::mul_": 270,
+      "aten::mean": 135,
+      "aten::var": 135,
+      "aten::sqrt": 135,
+      "aten::silu": 45,
+      "aten::softmax": 135,
+      "aten::neg": 180,
+      "aten::exp": 135
+    }
+  },
+  "fast_path_modules_disabled": 10,
+  "fast_reference_max_abs_error": 0.0,
+  "input_shapes": {
+    "Y": [
+      1,
+      256,
+      310
+    ],
+    "mask": [
+      1,
+      28,
+      256,
+      310
+    ],
+    "H": [
+      1,
+      28,
+      256,
+      256
+    ]
+  },
+  "config": "configs/MiJUN_5stg.yaml",
+  "resolved_config": "DATALOADER:\n  BATCH_SIZE: 10\n  NUM_WORKERS: 8\n  PIN_MEMORY: false\nDATASETS:\n  MASK_TYPE: mask_3d_shift\n  STEP: 2\n  TEST:\n    MASK_PATH: ./datasets/CSI/TSA_real_data/mask_3d_shift.mat\n    PATH: ./datasets/CSI/TSA_real_data/Measurements/\n  TRAIN:\n    AUGMENT: true\n    CROP_SIZE:\n    - 256\n    - 256\n    ITERATION: 10000\n    MASK_PATH: ./datasets/CSI/TSA_simu_data/mask_3d_shift.mat\n    PATHS:\n    - ./datasets/CSI/cave_1024_28\n    RANDOM_MASK: false\n    WITH_NOISE: false\n  VAL:\n    MASK_PATH: ./datasets/CSI/TSA_simu_data/mask_3d_shift.mat\n    PATH: ./datasets/CSI/TSA_simu_data/Truth/\n  WAVE_LENS: 28\nDEBUG: false\nDETERMINISTIC: true\nIMG_SIZE:\n- 256\n- 256\nLOSSES:\n  L1_LOSS: true\n  TV_LOSS: false\nMODEL:\n  DENOISER:\n    DERNN_LNLT:\n      DIM: 28\n      FFN_EXPAND: 2.66\n      FFN_NAME: Gated_Dconv_FeedForward\n      IN_DIM: 29\n      LAYERNORM_TYPE: WithBias\n      LOCAL: true\n      NON_LOCAL: true\n      NUM_BLOCKS:\n      - 1\n      - 1\n      - 1\n      - 1\n      - 1\n      OUT_DIM: 28\n      SHARE_PARAMS: true\n      STAGE: 9\n      WINDOW_NUM:\n      - 8\n      - 8\n      WINDOW_SIZE:\n      - 8\n      - 8\n      WITH_DL: true\n      WITH_MU: true\n      WITH_NOISE_LEVEL: true\n    TYPE: DERNN_LNLT\n  EMA:\n    DECAY: 0.999\n    ENABLE: true\nOPTIMIZER:\n  GRAD_CLIP: true\n  LR: 0.001\n  MAX_EPOCH: 300\nOUTPUT_DIR: null\nPRETRAINED_CKPT_PATH: ./our_mamba_5stg.pth\nRESUME_CKPT_PATH: null\nSEED: 3407\n",
+  "git_commit": "be916bef9086c90504d4896bcba52f6a3f45e70e",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "environment": {
+    "torch": "2.5.1",
+    "fvcore": "0.1.5.post20221221",
+    "thop": "0.1.1-2209072238",
+    "mamba-ssm": "1.2.0",
+    "causal-conv1d": "1.2.0",
+    "timm": "1.0.22",
+    "einops": "0.8.1"
+  },
+  "python": "3.9.20",
+  "cuda": "11.8",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "source_sha256": {
+    "sci/architectures/MiJUN.py": "de64cbb7ce68a80085fa30dde03b85b212be84903319d305709e8553d0c53016",
+    "sci/architectures/__init__.py": "a44d039e305d3f12ffbd94d06a9e417d1796274b7a7490a7d19c22abbb0e4e5a",
+    "sci/data/__init__.py": "5464ee97daa0b27ac9a294c8a3128e70280484e7f09ab1cdac33cb7686746d8e",
+    "sci/data/data.py": "1c7023b352202d413f702cf6f431736fba38635d869a273dba0a4b07420fedd9",
+    "sci/config/__init__.py": "2d0cc16ca934d07ed79845fd46b672b5d3f350f920546b6ab9e95e4f6bae4409",
+    "sci/config/config.py": "3a76a71276587e09772ad3898fdea2f309ff6b3dbac7b8dc2c656070a0b1c554",
+    "sci/config/defaults.py": "3d5cb6524a42df911fa1692791a7ff3701ef80620dc07121c967f9729a829667"
+  },
+  "profiler_sha256": "88a6acbc5db9efcb46824a46f115b255eb3254ba3c2da85ddbafdb7659bdcd3c",
+  "paper_gflops": 169.03,
+  "paper_agreement_within_0_01G": false
+}
