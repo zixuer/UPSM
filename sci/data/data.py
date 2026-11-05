@@ -1,11 +1,9 @@
 import os
 import random
-from copy import deepcopy
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
-import cv2
 import numpy as np
 from scipy import io as sio
 

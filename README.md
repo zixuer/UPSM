@@ -1,6 +1,6 @@
 # UPSM
 
-This is a clean training and testing release for UPSM.
+Training, evaluation and complexity profiling code for UPSM.
 
 ## Install
 
@@ -56,10 +56,8 @@ python tools/train.py \
 ## Parameters and FLOPs
 
 ```bash
-python tools/profile_complexity.py --stages 9 --output outputs/upsm9.json --check-paper
+python tools/profile_complexity.py --stages 9
 ```
 
 No dataset or checkpoint is required. See [the complexity guide](docs/COMPLEXITY.md)
-for verified UPSM results, the counting convention, environment, and the unresolved
-MiJUN FLOPs discrepancy. The MiJUN mode is diagnostic, not a claim that every
-baseline entry has been reproduced.
+for counting conventions, expected results and MiJUN usage.

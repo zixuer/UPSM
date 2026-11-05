@@ -5,10 +5,8 @@ fvcore
 omegaconf
 iopath
 torch-ema
-opencv-python
 scipy
 h5py
 tqdm
 numpy
-pandas
 tensorboard
