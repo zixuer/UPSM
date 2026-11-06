@@ -3,10 +3,7 @@
 See the paper "Inverted Residuals and Linear Bottlenecks:
 Mobile Networks for Classification, Detection and Segmentation" for more details.
 '''
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init
 from einops import rearrange
 
 class SeModule(nn.Module):
@@ -16,7 +13,7 @@ class SeModule(nn.Module):
         self.se = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(in_size, expand_size, kernel_size=1, bias=False),
-            
+
             nn.GELU(),
             nn.Conv2d(expand_size, in_size, kernel_size=1, bias=False),
             nn.Hardsigmoid()
@@ -57,15 +54,15 @@ class Block(nn.Module):
         if stride == 2 and in_size != out_size:
             self.skip = nn.Sequential(
                 nn.Conv2d(in_channels=in_size, out_channels=in_size, kernel_size=3, groups=in_size, stride=2, padding=1, bias=False),
-   
+
                 nn.Conv2d(in_size, out_size, kernel_size=1, bias=True),
-           
+
             )
 
         if stride == 2 and in_size == out_size:
             self.skip = nn.Sequential(
                 nn.Conv2d(in_channels=in_size, out_channels=out_size, kernel_size=3, groups=in_size, stride=2, padding=1, bias=False),
-     
+
             )
 
     def forward(self, x):
@@ -75,7 +72,7 @@ class Block(nn.Module):
         out = self.act2(self.conv2(out))
         out = self.se(out)
         out = self.conv3(out)
-        
+
         if self.skip is not None:
             skip = self.skip(skip)
         return self.act3(out + skip)
@@ -165,10 +162,3 @@ class Route(nn.Module):
         x = self.mlp(x)
         x = self.end(x)
         return x
-
-
-if __name__ == '__main__':
-    x = torch.randn(2, 28, 256, 256)
-    route = Route()
-    out = route(x)
-    print(out.shape)

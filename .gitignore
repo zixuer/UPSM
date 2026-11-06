@@ -5,7 +5,7 @@ __pycache__/
 .codex/
 .agents/
 
-data/
+/data/
 results/
 outputs/*
 !outputs/.gitkeep

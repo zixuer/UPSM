@@ -1,6 +1,6 @@
 # UPSM
 
-This is a clean training and testing release for UPSM.
+Training, evaluation and complexity profiling code for UPSM.
 
 ## Install
 
@@ -52,3 +52,12 @@ python tools/train.py \
   --config-file configs/UPSM_6stg.yaml \
   --device cuda:0
 ```
+
+## Parameters and FLOPs
+
+```bash
+python tools/profile_complexity.py --stages 9
+```
+
+No dataset or checkpoint is required. See [the complexity guide](docs/COMPLEXITY.md)
+for counting conventions, expected results and MiJUN usage.
