@@ -1,6 +1,6 @@
 # UPSM
 
-This is a clean training and testing release for UPSM.
+Training, evaluation and complexity profiling code for UPSM.
 
 ## Install
 
@@ -12,14 +12,12 @@ pip install -r requirements.txt
 
 ## Data And Checkpoints
 
-Use the data layout in [docs/DATA.md](docs/DATA.md). Put pretrained weights in:
+Place datasets under `data/` (`CAVE_1024_28/`, `TSA_simu_data/`, `TSA_real_data/`, `ICVL/`) and pretrained weights in:
 
 ```text
 checkpoints/UPSM_6stg.pth
 checkpoints/UPSM_9stg.pth
 ```
-
-See [docs/MODEL_ZOO.md](docs/MODEL_ZOO.md) for checkpoint loading notes.
 
 ## ICVL Test
 
@@ -52,3 +50,11 @@ python tools/train.py \
   --config-file configs/UPSM_6stg.yaml \
   --device cuda:0
 ```
+
+## Parameters and FLOPs
+
+```bash
+python tools/profile_complexity.py --stages 9
+```
+
+No dataset or checkpoint is required. To profile MiJUN under the same script, clone the official MiJUN repository and pass `--repo-root /path/to/MiJUN --stages 9`.

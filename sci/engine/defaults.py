@@ -17,7 +17,7 @@ from sci.utils.file_io import PathManager
 
 def default_argument_parser(epilog=None):
     """
-    Create a parser with some common arguments used by detectron2 users.
+    Create the shared UPSM command-line parser.
     Args:
         epilog (str): epilog passed to ArgumentParser describing the usage.
     Returns:
@@ -25,16 +25,7 @@ def default_argument_parser(epilog=None):
     """
     parser = argparse.ArgumentParser(
         epilog=epilog
-        or f"""
-            Examples:
-Run on single machine:
-    $ {sys.argv[0]} --num-gpus 8 --config-file cfg.yaml
-Change some config options:
-    $ {sys.argv[0]} --config-file cfg.yaml MODEL.WEIGHTS /path/to/weight.pth SOLVER.BASE_LR 0.001
-Run on multiple machines:
-    (machine0)$ {sys.argv[0]} --machine-rank 0 --num-machines 2 --dist-url <URL> [--other-flags]
-    (machine1)$ {sys.argv[0]} --machine-rank 1 --num-machines 2 --dist-url <URL> [--other-flags]
-""",
+        or f"Example: python {sys.argv[0]} --config-file configs/UPSM_6stg.yaml",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
@@ -102,7 +93,7 @@ def gen_log(model_path):
 def default_setup(cfg, args):
     """
     Perform some basic common setups at the beginning of a job, including:
-    1. Set up the detectron2 logger
+    1. Set up the training logger
     2. Log basic information about environment, cmdline arguments, and config
     3. Backup the config to the output directory
     Args:
@@ -132,7 +123,7 @@ def default_setup(cfg, args):
                 _highlight(PathManager.open(args.config_file, "r").read(), args.config_file),
             )
         )
-    
+
     if output_dir:
         # Note: some of our scripts may expect the existence of
         # config.yaml in output directory
@@ -152,7 +143,7 @@ def default_setup(cfg, args):
 
 def seed_everything(
     seed = 3407,
-    deterministic = False, 
+    deterministic = False,
 ):
     """Set random seed.
     Args:
@@ -162,8 +153,6 @@ def seed_everything(
             CUDNN backend, i.e., set `torch.backends.cudnn.deterministic`
             to True and `torch.backends.cudnn.benchmark` to False.
             Default: False.
-        rank_shift (bool): Whether to add rank number to the random seed to
-            have different random seed in different threads. Default: False.
     """
     random.seed(seed)
     np.random.seed(seed)

@@ -2,13 +2,12 @@ mamba-ssm
 einops
 timm
 fvcore
+thop==0.1.1.post2209072238
 omegaconf
 iopath
 torch-ema
-opencv-python
 scipy
 h5py
 tqdm
 numpy
-pandas
 tensorboard

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import functools
-import inspect
-import logging
 from fvcore.common.config import CfgNode as _CfgNode
 
 from sci.utils.file_io import PathManager
@@ -15,8 +12,6 @@ class CfgNode(_CfgNode):
        Note that this may lead to arbitrary code execution: you must not
        load a config file from untrusted sources before manually inspecting
        the content of the file.
-    2. Support config versioning.
-       When attempting to merge an old config, it will convert the old config automatically.
     .. automethod:: clone
     .. automethod:: freeze
     .. automethod:: defrost
@@ -42,13 +37,8 @@ class CfgNode(_CfgNode):
         loaded_cfg = self.load_yaml_with_base(cfg_filename, allow_unsafe=allow_unsafe)
         loaded_cfg = type(self)(loaded_cfg)
 
-        # defaults.py needs to import CfgNode
-        from .defaults import _C
-
-        logger = logging.getLogger(__name__)
-
         self.merge_from_other_cfg(loaded_cfg)
-        
+
 
     def dump(self, *args, **kwargs):
         """
@@ -57,7 +47,7 @@ class CfgNode(_CfgNode):
         """
         # to make it show up in docs
         return super().dump(*args, **kwargs)
-    
+
 
 def get_cfg() -> CfgNode:
     """

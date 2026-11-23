@@ -5,14 +5,11 @@ import warnings
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from torch.nn.init import _calculate_fan_in_and_fan_out
 
 from einops import rearrange
-from torch import einsum
 
-from sci.data import shift_batch, shift_back_batch, gen_meas_torch_batch
-# import swattention
-from timm.models.layers import DropPath, trunc_normal_, drop_path
+from sci.data import gen_meas_torch_batch
+from timm.models.layers import trunc_normal_
 import numpy as np
 
 from sci.architectures.mobile_net import Route
@@ -27,7 +24,7 @@ def _cfg_get(node, name, default):
 class ZeroModule(nn.Module):
     def forward(self, x, *args, **kwargs):
         return torch.zeros_like(x)
-    
+
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
     def norm_cdf(x):
         return (1. + math.erf(x / math.sqrt(2.))) / 2.
@@ -52,34 +49,15 @@ def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
 
-def index_reverse(index):
-    index_r = torch.zeros_like(index)
-    ind = torch.arange(0, index.shape[-1]).to(index.device)
-    for i in range(index.shape[0]):
-        index_r[i, index[i, :]] = ind
-    return index_r
-
-def semantic_neighbor(x, index):
-    dim = index.dim()
-    assert x.shape[:dim] == index.shape, "x ({:}) and index ({:}) shape incompatible".format(x.shape, index.shape)
-
-    for _ in range(x.dim() - index.dim()):
-        index = index.unsqueeze(-1)
-    index = index.expand(x.shape)
-
-    shuffled_x = torch.gather(x, dim=dim - 1, index=index)
-    return shuffled_x
-
-
 class GELU(nn.Module):
     def forward(self, x):
         return F.gelu(x)
-    
+
 
 ## Gated-Dconv Feed-Forward Network (GDFN)
 class Gated_Dconv_FeedForward(nn.Module):
-    def __init__(self, 
-                 dim, 
+    def __init__(self,
+                 dim,
                  ffn_expansion_factor = 2.66
     ):
         super(Gated_Dconv_FeedForward, self).__init__()
@@ -104,27 +82,8 @@ class Gated_Dconv_FeedForward(nn.Module):
         x = self.act_fn(x1) * x2
         x = self.project_out(x)
         return x
-    
 
 
-# class FeedForward(nn.Module):
-#     def __init__(self, dim, mult=4):
-#         super().__init__()
-#         self.net = nn.Sequential(
-#             nn.Conv2d(dim, dim * mult, 1, 1, bias=False),
-#             GELU(),
-#             nn.Conv2d(dim * mult, dim * mult, 3, 1, 1, bias=False, groups=dim * mult),
-#             GELU(),
-#             nn.Conv2d(dim * mult, dim, 1, 1, bias=False),
-#         )
-
-#     def forward(self, x):
-#         """
-#         x: [b, h, w, c]
-#         return out: [b, h, w, c]
-#         """
-#         out = self.net(x)
-#         return out
 
 class FeedForward(nn.Module):
     def __init__(self, dim, multi=4):
@@ -156,8 +115,8 @@ def FFN_FN(
 ):
     if ffn_name == "Gated_Dconv_FeedForward":
         return Gated_Dconv_FeedForward(
-                dim, 
-                ffn_expansion_factor=cfg.MODEL.DENOISER.DERNN_LNLT.FFN_EXPAND, 
+                dim,
+                ffn_expansion_factor=cfg.MODEL.DENOISER.DERNN_LNLT.FFN_EXPAND,
             )
     elif ffn_name == "FeedForward":
         return FeedForward(dim = dim)
@@ -185,7 +144,7 @@ class BiasFree_LayerNorm(nn.Module):
     def forward(self, x):
         sigma = x.var(-1, keepdim=True, unbiased=False)
         return x / torch.sqrt(sigma+1e-5) * self.weight
-    
+
 
 class WithBias_LayerNorm(nn.Module):
     def __init__(self, normalized_shape):
@@ -218,7 +177,7 @@ class LayerNorm(nn.Module):
         # x: (b, c, h, w)
         h, w = x.shape[-2:]
         return to_4d(self.body(to_3d(x)), h, w)
-    
+
 
 class PreNorm(nn.Module):
     def __init__(self, dim, fn, layernorm_type='WithBias'):
@@ -251,7 +210,7 @@ class ATD_CA(nn.Module):
         self.wq = nn.Linear(dim, self.dr, bias=qkv_bias)
         self.wk = nn.Linear(rank, self.dr, bias=qkv_bias)
 
-        
+
         self.scale = nn.Parameter(torch.ones([1]), requires_grad=True)
         self.softmax = nn.Softmax(dim=-1)
 
@@ -264,7 +223,7 @@ class ATD_CA(nn.Module):
         h, w = x_size
         b, n, c = x.shape
         b, m, ran = td.shape
-        
+
         # Q: b, n, c
         q = self.wq(x)
         # K: b, m, c
@@ -275,7 +234,7 @@ class ATD_CA(nn.Module):
         scale = 1 + torch.clamp(self.scale, 0, 3) * np.log(self.num_tokens)
         attn_logits = attn * scale
         attn = self.softmax(attn_logits)
-        
+
         # Attn * V
         # x = (attn @ v).permute(0, 2, 1).reshape(b, c, h, w).contiguous()
 
@@ -298,20 +257,18 @@ class ATD_CA(nn.Module):
         flops += n * self.num_tokens * self.dim
 
         return flops
-        
+
 class MambaLayer(nn.Module):
     def __init__(self, cfg, dim, num_tokens=16, d_state = 16, d_conv = 3, expand = 2, channel_token = False, mode_temp=None):
         super().__init__()
-        # print(f"Transformer: dim: {dim}")
-        # print(f"Mamba: dim: {dim_m}")
         self.dim = dim
-        
+
 
         # 定义两个分支不同的 Patch 尺寸
         self.ws = 32 # 第一种扫描的窗口 (空间局部扫描)
 
 
-   
+
         # self.in_proj = nn.Sequential(
         #     nn.Conv2d(dim, 2*dim, 1, 1, 0),
         # )
@@ -334,7 +291,7 @@ class MambaLayer(nn.Module):
             )
 
         else:
-            
+
             self.mamba = Mamba(
                     d_model=dim, # Model dimension d_model
                     d_state=d_state,  # SSM state expansion factor
@@ -342,10 +299,10 @@ class MambaLayer(nn.Module):
                     expand=expand,    # Block expansion factor
                     # bimamba= True,
             )
-                        
 
- 
-            
+
+
+
 
     def forward_Guide_mamba(self, x, sim_atd, direction='fwd', capture_dict=None):
         """
@@ -359,7 +316,7 @@ class MambaLayer(nn.Module):
         assert sim_atd.shape[0] == B and sim_atd.shape[1] == N, \
             f"sim_atd shape {sim_atd.shape} does not match x shape {x.shape}"
 
- 
+
 
         # 1. token hard assignment
         tk_id = torch.argmax(sim_atd, dim=-1)                               # [B, N]
@@ -403,9 +360,9 @@ class MambaLayer(nn.Module):
 
         y_2d = self.mamba(x_2d,direction=direction)
 
-        # y_2d = rearrange(y_seq, 'b (nw_h nw_w wh ww) c -> b c (nw_h wh) (nw_w ww)', 
+        # y_2d = rearrange(y_seq, 'b (nw_h nw_w wh ww) c -> b c (nw_h wh) (nw_w ww)',
         #                      nw_h=H//ws, nw_w=W//ws, wh=ws, ww=ws)
-        
+
         return y_2d
 
 
@@ -413,9 +370,9 @@ class MambaLayer(nn.Module):
         B, C, H, W = x.shape
         if x.dtype == torch.float16 or x.dtype == torch.bfloat16:
             x = x.type(torch.float32)
-    
+
         if self.mode == 'guide':
-   
+
             sim_atd = self.cttn(x, UPT, [H,W]) # sim_atd shape [b, h*w, num_tokens]
             x_sg = self.forward_Guide_mamba(
                 x,
@@ -426,8 +383,8 @@ class MambaLayer(nn.Module):
             out = x_sg
             return out
         else:
-            x_lc = self.forward_local_mamba(x, direction=direction) 
-            out = x_lc 
+            x_lc = self.forward_local_mamba(x, direction=direction)
+            out = x_lc
             return out
 
 class CMB(nn.Module):
@@ -552,7 +509,7 @@ class LocalNonLocalBlock(nn.Module):
             x = x + cmb(x)
 
         return x
-    
+
 
 class DownSample(nn.Module):
     def __init__(self, in_channels, bias=False):
@@ -575,28 +532,28 @@ class UpSample(nn.Module):
     def forward(self, x):
         x = self.up(x)
         return x
-    
+
 class GatedDirectionalMemory(nn.Module):
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
-        
+
         # 引入 GroupNorm 稳住方差
         self.norm = nn.GroupNorm(num_groups=1, num_channels=dim * 2)
-        
+
         # 门控: 输入dim*2，输出dim
         self.gate = nn.Sequential(
             nn.Conv2d(dim * 2, dim, kernel_size=1, bias=True),
             nn.Sigmoid()
         )
-        
+
         # 记忆特征投影
         self.memory_proj = nn.Sequential(
             nn.Conv2d(dim, dim, kernel_size=3, padding=1, bias=False, groups=dim),
             nn.GELU(),
             nn.Conv2d(dim, dim, kernel_size=1, bias=True)
         )
-        
+
         # 零初始化技巧：让初始阶段的跨层融合处于“休眠”状态
         nn.init.constant_(self.memory_proj[-1].weight, 0)
         nn.init.constant_(self.memory_proj[-1].bias, 0)
@@ -619,9 +576,9 @@ class GatedDirectionalMemory(nn.Module):
 
         # 6. 干净利落的融合
         out = x_current + memory_proj * g
-        
+
         return out
-    
+
 class LNLT(nn.Module):
     """
     U-shaped denoiser with optional GuideMamba and optional cross-stage memory.
@@ -890,7 +847,7 @@ class LNLT(nn.Module):
 
         return out[:, :, :h_inp, :w_inp], feat_pack, aux
 
-    
+
 
 def PWDWPWConv(in_channels, out_channels):
     return nn.Sequential(
@@ -966,24 +923,6 @@ class DegradationEstimation(nn.Module):
 
         return phi, mu, noise_level[:, None, :, :]
 
-
-class Mlp(nn.Module):
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
-        super().__init__()
-        out_features = out_features or in_features
-        hidden_features = hidden_features or in_features
-        self.fc1 = nn.Linear(in_features, hidden_features)
-        self.act = act_layer()
-        self.fc2 = nn.Linear(hidden_features, out_features)
-        self.drop = nn.Dropout(drop)
-
-    def forward(self, x):
-        x = self.fc1(x)
-        x = self.act(x)
-        x = self.drop(x)
-        x = self.fc2(x)
-        x = self.drop(x)
-        return x
 
 class UPSM(nn.Module):
     def __init__(self, cfg):
@@ -1261,7 +1200,6 @@ class UPSM(nn.Module):
                 debug_info.update(aux_without_stage_maps)
 
             if self.ablation_cfg["WITH_CROSS_STAGE_MEMORY"]:
-                # prev_feats = [f.detach() if f is not None else None for f in prev_feats_raw]
                 prev_feats = [f if f is not None else None for f in prev_feats_raw]
             else:
                 prev_feats = None

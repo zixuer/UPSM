@@ -1,34 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from .config import CfgNode as CN
 
-# NOTE: given the new config system
-# (https://detectron2.readthedocs.io/en/latest/tutorials/lazyconfigs.html),
-# we will stop adding new functionalities to default CfgNode.
-
-# -----------------------------------------------------------------------------
-# Convention about Training / Test specific parameters
-# -----------------------------------------------------------------------------
-# Whenever an argument can be either used for training or for testing, the
-# corresponding name will be post-fixed by a _TRAIN for a training parameter,
-# or _TEST for a test-specific parameter.
-# For example, the number of images during training will be
-# IMAGES_PER_BATCH_TRAIN, while the number of images for testing will be
-# IMAGES_PER_BATCH_TEST
-
-# -----------------------------------------------------------------------------
-# Config definition
-# -----------------------------------------------------------------------------
-
 _C = CN()
 
-_C.IMG_SIZE = [256, 256]
 _C.DEBUG = False
 _C.OUTPUT_DIR = ""
 _C.SEED = 3407
 _C.DETERMINISTIC = True
 _C.RESUME_CKPT_PATH = None
 _C.PRETRAINED_CKPT_PATH = None
-_C.WARMDICT_PATH = None
 
 _C.DATASETS = CN()
 _C.DATASETS.STEP = 2
@@ -37,7 +17,7 @@ _C.DATASETS.MASK_TYPE = "mask_3d"
 
 _C.DATASETS.TRAIN = CN()
 _C.DATASETS.TRAIN.MASK_PATH = ""
-_C.DATASETS.TRAIN.RANDOM_MASK = True 
+_C.DATASETS.TRAIN.RANDOM_MASK = True
 _C.DATASETS.TRAIN.PATHS = []
 _C.DATASETS.TRAIN.ITERATION = 1000
 _C.DATASETS.TRAIN.CROP_SIZE = [256, 256]
@@ -79,18 +59,16 @@ _C.MODEL.DENOISER.DERNN_LNLT.FFN_EXPAND = 2.66
 _C.MODEL.DENOISER.DERNN_LNLT.LAYERNORM_TYPE = "WithBias"
 _C.MODEL.DENOISER.DERNN_LNLT.STAGE = 5
 _C.MODEL.DENOISER.DERNN_LNLT.RANK = 64
-_C.MODEL.DENOISER.DERNN_LNLT.NUM_TOKENS = 16 
+_C.MODEL.DENOISER.DERNN_LNLT.NUM_TOKENS = 16
 _C.MODEL.DENOISER.DERNN_LNLT.SHARE_PARAMS = True
 _C.MODEL.DENOISER.DERNN_LNLT.WITH_DL = True
 _C.MODEL.DENOISER.DERNN_LNLT.WITH_MU = True
-_C.MODEL.DENOISER.DERNN_LNLT.WITH_NOISE_LEVEL = True
 _C.MODEL.DENOISER.DERNN_LNLT.WITH_NOISE_LEVEL = True
 _C.MODEL.DENOISER.DERNN_LNLT.ABLATION_PRESET = "full"
 _C.MODEL.DENOISER.DERNN_LNLT.WITH_GUIDE_MAMBA =  True
 _C.MODEL.DENOISER.DERNN_LNLT.WITH_DIRECTIONAL_PARAMS = True
 _C.MODEL.DENOISER.DERNN_LNLT.WITH_DIRECTION_SCHEDULE = True
 _C.MODEL.DENOISER.DERNN_LNLT.WITH_CROSS_STAGE_MEMORY = True
-_C.MODEL.DENOISER.DERNN_LNLT.TOKEN_ORG_MODE = "ifo"
 
 # EMA
 _C.MODEL.EMA = CN()
@@ -100,7 +78,6 @@ _C.MODEL.EMA.DECAY = 0.999
 # OPTIMIZER
 _C.OPTIMIZER = CN()
 _C.OPTIMIZER.MAX_EPOCH = 300
-_C.OPTIMIZER.WARMDICT_MAX_EPOCH = 100
 _C.OPTIMIZER.LR = 2e-4
 _C.OPTIMIZER.GRAD_CLIP = True
 
